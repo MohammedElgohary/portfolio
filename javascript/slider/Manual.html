@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Slider Show</title>
+    <style>
+        * {box-sizing: border-box}
+        body {margin: 0;padding: 0}
+        #container {
+            width: 100%;
+            padding: 0px 100px;
+            margin: 50px 0; 
+            position: relative;
+        }
+        #container .myslide {
+            display: none;
+            width: 100%;
+            padding: 100px 0px;
+            text-align: center;
+            background: #EEE;
+            color: green;
+            font-size: 90px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 550;
+        }
+        #btn-left, #btn-right {
+            position: absolute;
+            top: 0%;
+            width: 100px;
+            height: 100%;
+            border: 0;
+            outline: 0;
+            background: inherit;
+            color: inherit;
+            font-size: 30px;
+            transition: all 0.5s;
+        }
+        #btn-left {
+            float: left;
+            left: 0;
+        }
+        #btn-right {
+            float: right;
+            right: 0;
+        }
+        #btn-left:hover, #btn-right:hover {
+            background: #111;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="container">
+        <div class="myslide">
+            HTML5 
+        </div>
+        <div class="myslide">
+            CSS3
+        </div>
+        <div class="myslide">
+            Javascript
+        </div>
+        <div class="myslide">
+            PHP
+        </div>
+        <div class="myslide">
+            VUE JS
+        </div>
+
+        <input type="button" value="<" id="btn-left">
+        <input type="button" value=">" id="btn-right">
+    </div>
+
+
+    <script>
+    var mySlide = document.querySelectorAll(".myslide");
+    var btnIncrease = document.querySelector("#btn-right");
+    var btnDecrease = document.querySelector("#btn-left");
+
+    var index = 0;
+    Change();
+
+    function Change() {
+        if ( index > mySlide.length - 1) { index = 0; }
+
+        for( i = 0; i < mySlide.length; i ++ ) {
+            mySlide[i].style.display = "none";
+        }
+
+        mySlide[index].style.display = "block";
+    }
+
+    btnIncrease.addEventListener("click", ()=>{
+    	if (index == mySlide.length - 1) {
+	    	 index = 0; 
+	    	 Change();
+    	} else {
+	        index++;
+	        Change();
+    	}
+    });
+    btnDecrease.addEventListener("click", ()=>{
+    	if (index == 0) { 
+    		index = mySlide.length - 1;
+    	 	Change();
+    	} else {
+	        index--;
+	        Change();
+    	}
+    });
+
+    </script>
+</body>
+</html>

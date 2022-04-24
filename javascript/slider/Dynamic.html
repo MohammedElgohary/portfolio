@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Slider</title>
+    <style>
+      :root {
+        --borders: #888;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        width: 100%;
+        padding: 0px 100px;
+        margin: 50px 0;
+      }
+
+      #container .my-slide {
+        display: none;
+        width: 100%;
+        padding: 100px 0px;
+        text-align: center;
+        background: #eee;
+        color: #555;
+        font-size: 90px;
+        font-family: "Courier New", Courier, monospace;
+        font-weight: 550;
+      }
+
+      #container .my-slide.shown {
+        display: block;
+      }
+
+      #container .controls {
+        padding: 25px 0;
+      }
+
+      #container .controls input,
+      #container .controls button {
+        border: 1px solid var(--borders);
+        padding: 10px 20px;
+        font-size: 20px;
+        margin-right: 15px;
+        background-color: #fff;
+        color: #555;
+      }
+
+      #container .controls button {
+        transition: all 0.5s ease-in-out;
+        cursor: pointer;
+      }
+
+      #container .controls button:hover {
+        background-color: #000;
+        color: #fff;
+      }
+
+      .animate {
+        transform-origin: right;
+        animation: Fade 0.5s ease-in-out;
+      }
+
+      @keyframes Fade {
+        from {
+          transform: rotateY(-45deg);
+        }
+        to {
+          transform: rotateY(0deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div class="my-slide shown animate">Slide 1</div>
+      <div class="my-slide">Slide 2</div>
+      <div class="my-slide">Slide 3</div>
+      <div class="my-slide">Slide 4</div>
+      <div class="my-slide">Slide 5</div>
+
+      <div class="controls">
+        <button id="btn-random">Random</button>
+        <input type="number" id="delayInput" placeholder="Delay ms" />
+      </div>
+    </div>
+
+    <script>
+      const slides = document.querySelectorAll(".my-slide"),
+        randomBtn = document.querySelector("#btn-random"),
+        delayInput = document.querySelector("#delayInput");
+
+      let shownSlide = 0,
+        isRandom = false,
+        delay = 1500;
+
+      const random = (low, high) =>
+        Math.floor(Math.random() * (1 + high - low)) + low;
+
+      const autoSlide = () => {
+        slides.forEach((slide) => {
+          slide.classList.remove("shown");
+          slide.classList.remove("animate");
+        });
+
+        slides[shownSlide].classList.add("shown");
+        slides[shownSlide].classList.add("animate");
+
+        shownSlide = isRandom
+          ? random(0, slides.length - 1)
+          : shownSlide === slides.length - 1
+          ? 0
+          : shownSlide + 1;
+      };
+
+      let theInterval = setInterval(autoSlide, delay);
+
+      randomBtn.addEventListener("click", (e) => {
+        const txtObj = {
+          false: "Random",
+          true: "Stop Random",
+        };
+
+        isRandom = !isRandom;
+
+        e.target.innerHTML = txtObj[isRandom];
+      });
+
+      const changeDelay = (e) => {
+        if (!e.target.value) return;
+
+        delay = e.target.value;
+
+        clearInterval(theInterval);
+        theInterval = setInterval(autoSlide, e.target.value);
+      };
+
+      delayInput.addEventListener("keyup", changeDelay);
+      delayInput.addEventListener("change", changeDelay);
+    </script>
+  </body>
+</html>

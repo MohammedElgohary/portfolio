@@ -1,0 +1,224 @@
+/* Vars */
+:root {
+  --mainColor: #fff;
+  --mainBackground: #2c3e50;
+  --BackgroundLight: #eee;
+  --BackgroundFooter: #37516b;
+}
+
+/* Settings */
+body {
+  padding: 0px;
+  margin: 0px;
+  font-size: 21px;
+}
+* {
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  scroll-behavior: smooth;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+*:focus-visible {
+  outline: 0px !important;
+  box-shadow: unset !important;
+}
+
+@-moz-document url-prefix() {
+  html {
+    scrollbar-width: none;
+  }
+}
+body {
+  margin: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow-y: scroll;
+  overflow-x: hidden !important;
+}
+
+body::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+  display: none;
+}
+
+/* General */
+.mian-header,
+.mian-header #themes,
+.content,
+.content .controls,
+.content .controls button,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content #textCode,
+.secretContainer #secret,
+.content .controls button,
+.mian-header #langSelect {
+  border: 0px;
+  outline: 0px;
+  box-shadow: unset;
+}
+
+.content #textCode,
+.content .controls button,
+.secretContainer #secret,
+#result,
+.mian-header #langSelect {
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+}
+
+/* Style */
+.mian-header {
+  position: relative;
+  font-size: 4.5vmin;
+  padding: 60px 0;
+  background-color: var(--mainBackground);
+  color: var(--mainColor);
+  text-align: center;
+  min-height: 300px;
+}
+
+.mian-header #langSelect {
+  padding: 8px 25px;
+  font-size: 21px;
+  background: var(--BackgroundFooter) !important;
+  color: var(--mainColor);
+  position: absolute;
+}
+
+.mian-header #themes {
+  position: absolute;
+  bottom: 20px;
+}
+
+body.ar .mian-header #themes {
+  left: 15px;
+}
+
+body.en .mian-header #themes,
+body.gr .mian-header #themes,
+body.es .mian-header #themes,
+body.ru .mian-header #themes,
+body.hi .mian-header #themes,
+body.fr .mian-header #themes {
+  right: 15px;
+}
+
+.mian-header #themes .theme {
+  width: 35px;
+  height: 35px;
+  margin: 0px 5px;
+  outline-offset: -1px;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  -ms-border-radius: 50%;
+  -o-border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+}
+
+.mian-header #themes .theme:hover {
+  transform: scale(1.2);
+  -webkit-transform: scale(1.2);
+  -moz-transform: scale(1.2);
+  -ms-transform: scale(1.2);
+  -o-transform: scale(1.2);
+}
+
+.mian-header #themes .theme.active {
+  outline: 3px solid #fff;
+}
+
+body.ar .mian-header #langSelect {
+  top: 20px;
+  right: 10px;
+}
+
+body.en .mian-header #langSelect ,
+body.gr .mian-header #langSelect ,
+body.es .mian-header #langSelect ,
+body.ru .mian-header #langSelect ,
+body.hi .mian-header #langSelect ,
+body.fr .mian-header #langSelect {
+  top: 20px;
+  left: 10px;
+}
+
+.content {
+  flex-direction: column;
+}
+
+.content #textCode {
+  padding: 18px 25px;
+  width: 100%;
+  min-height: 200px;
+  font-size: 21px;
+  resize: vertical;
+}
+
+.secretContainer {
+  width: 100%;
+}
+
+.secretContainer #secret {
+  width: calc(100% - 20px);
+  padding: 12px 25px;
+  margin: 15px 10px;
+  margin-bottom: 0px;
+  font-size: 21px;
+  border: 1px solid #ccc;
+}
+
+.content .controls {
+  margin-top: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.content .controls button {
+  flex-grow: 1;
+  flex-basis: 0;
+  margin: 10px;
+  padding: 12px 25px;
+  font-size: 21px;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.content .controls button:hover,
+.content .controls button:focus {
+  background-color: var(--mainBackground);
+  color: var(--mainColor);
+}
+
+#result {
+  background-color: var(--BackgroundLight);
+  color: var(--mainBackground);
+  padding: 25px 35px;
+  margin: 10px;
+}
+
+.footer {
+  margin-top: 25px;
+  padding: 25px 0;
+  background-color: var(--BackgroundFooter);
+  color: var(--mainColor);
+}
