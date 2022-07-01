@@ -5,7 +5,7 @@
   $db = new db("host", "user", "password", "database_name");
 ```
 
-## get Method ( GET Data )
+## `get` Method ( GET Data )
 
 ```php
   $users = $db->get("SELECT * FROM users"); // OR
@@ -13,7 +13,7 @@
   $user  = $db->get("SELECT * FROM users WHERE id=?", array(12));
 ```
 
-## query Method
+## `query` Method
 ```php
   $users = $db->query("SELECT * FROM users"); // OR
   $user  = $db->query("SELECT * FROM users WHERE id=12"); // OR
@@ -21,7 +21,7 @@
 ```
 
 
-## set Method ( Insert, Update and Delete Data)
+## `set` Method ( Insert, Update and Delete Data)
 
 ```php
   $addParams = db::insertArray([
