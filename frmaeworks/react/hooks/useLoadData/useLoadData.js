@@ -86,8 +86,15 @@ const useLoadData = ({
     condition = true;
   }
 
+  // set the default id to uniqueKey
+  if (typeof uniqueKey === "undefined") {
+    uniqueKey = id;
+  }
+
   const updateItemInData = (item) => {
-    setData(data?.map((el) => (el?.id === item?.id ? item : el)));
+    setData(
+      data?.map((el) => (el?.[uniqueKey] === item?.[uniqueKey] ? item : el))
+    );
   };
 
   const replaceDataItem = (key, value, newValue) => {
