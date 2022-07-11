@@ -7,11 +7,14 @@ export const useTimer = ({ duration, callback, delay }) => {
 
   delay = delay || 1000;
 
+  const padLeft = (num, digits = 2, str = "0") =>
+    Array(digits - String(num).length + 1).join(str) + num;
+
   const convertTime = (time) => {
     let hours = Math.floor(time / 60),
       minutes = time % 60;
 
-    return `${hours}:${minutes}:00`;
+    return `${padLeft(hours)}:${padLeft(minutes)}:00`;
   };
 
   const start = () => {
@@ -49,7 +52,9 @@ export const useTimer = ({ duration, callback, delay }) => {
       }
 
       // update displayed time
-      setDisplayedTime(`${hours}:${minutes}:${seconds}`);
+      setDisplayedTime(
+        `${padLeft(hours)}:${padLeft(minutes)}:${padLeft(seconds)}`
+      );
     }, delay);
   };
 
