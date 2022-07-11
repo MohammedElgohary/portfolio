@@ -11,7 +11,7 @@
 
 ```javascript
 const { start, stop, reset, displayedTime } = useTimer({
-  duration: 1, // By minutes
+  duration: 1, // Duration in minutes
   callback: () => {
     alert("timer is done");
   }, // Callback when the timer finished
