@@ -19,6 +19,31 @@ import PropTypes from "prop-types";
  * @returns
  */
 
+export interface useLoadDataProps {
+  url: string;
+  options?: any;
+  params?: any;
+  waitingParams?: any;
+  delay?: number;
+  callBack?: (error?: any, data?: any[]) => void;
+  onChange?: (object: object) => void;
+  onHistoryChange: (array: any[]) => void;
+  condition?: boolean;
+  maintainData?: boolean;
+  uniqueData?: boolean;
+  uniqueKey?: string;
+}
+
+export interface CurrentPropsInterface {
+  url: string;
+  params?: any;
+  waitingParams?: any;
+  delay?: number;
+  callBack?: (error?: any, data?: any[]) => void;
+  onChange?: (object: object) => void;
+  condition?: boolean;
+}
+
 const useLoadData = ({
   url,
   options,
@@ -28,14 +53,14 @@ const useLoadData = ({
   callBack,
   onChange,
   onHistoryChange,
-  condition,
+  condition = true,
   maintainData,
   uniqueData,
-  uniqueKey,
-}) => {
-  const [propsHistory, setPropsHistory] = useState([]);
+  uniqueKey = "id",
+}: useLoadDataProps) => {
+  const [propsHistory, setPropsHistory] = useState<CurrentPropsInterface[]>([]);
 
-  const currentProps = {
+  const currentProps: CurrentPropsInterface = {
     url,
     params,
     callBack,
@@ -46,27 +71,26 @@ const useLoadData = ({
   };
 
   useEffect(() => {
-    if (onHistoryChange) {
-      onHistoryChange(propsHistory);
-    }
+    if (onHistoryChange) onHistoryChange(propsHistory);
   }, [JSON.stringify(propsHistory)]);
 
-  useEffect(() => {
-    setPropsHistory([...propsHistory, currentProps]);
-  }, [JSON.stringify(currentProps)]);
+  useEffect(
+    () => setPropsHistory([...propsHistory, currentProps]),
+    [JSON.stringify(currentProps)]
+  );
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
-  const [status, setStatus] = useState(null);
-  const [error, setError] = useState(null);
-  const [pageCount, setPageCount] = useState(null);
-  const [limit, setLimit] = useState(null);
-  const [page, setPage] = useState(null);
-  const [totalCount, setTotalCount] = useState(null);
-  const [time, setTime] = useState(0);
-  const [requestTime, setRequestTime] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<any[] | any>([]);
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
+  const [pageCount, setPageCount] = useState<number | null>(null);
+  const [limit, setLimit] = useState<number | null>(null);
+  const [page, setPage] = useState<number | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [time, setTime] = useState<number>(0);
+  const [requestTime, setRequestTime] = useState<number>(0);
 
-  const resetDefaults = () => {
+  const resetDefaults = (): void => {
     setLoading(true);
     if (!maintainData) {
       setData([]);
@@ -81,26 +105,27 @@ const useLoadData = ({
     setRequestTime(0);
   };
 
-  // set the default true condition
-  condition = condition !== undefined ? condition : true;
-
-  // set the default id to uniqueKey
-  uniqueKey = uniqueKey !== undefined ? uniqueKey : "id";
-
-  const updateItemInData = (item) => {
+  const updateItemInData = (item: any): void =>
     setData(
-      data?.map((el) => (el?.[uniqueKey] === item?.[uniqueKey] ? item : el))
+      data?.map((object: any) =>
+        object?.[uniqueKey] === item?.[uniqueKey] ? item : object
+      )
     );
-  };
 
-  const replaceDataItem = (key, value, newValue) => {
-    if (data?.length) {
-      if (key) {
-        setData(data?.map((ele) => (ele[key] === value ? newValue : ele)));
-      } else {
-        setData(data?.map((ele) => (ele === value ? newValue : ele)));
-      }
-    }
+  const replaceDataItem = (key: string, value: any, newValue: any) => {
+    if (!data?.length) return;
+
+    setData((data: any) =>
+      data?.map((item: any) =>
+        key
+          ? item[key] === value
+            ? newValue
+            : item
+          : item === value
+          ? newValue
+          : item
+      )
+    );
   };
 
   const filterNotEmptyParams = (params) => {
