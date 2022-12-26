@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 
@@ -25,9 +25,9 @@ export interface useLoadDataProps {
   params?: any;
   waitingParams?: any;
   delay?: number;
-  callBack?: (error?: any, data?: any[]) => void;
+  callBack?: (error?: any, data?: any) => void;
   onChange?: (object: object) => void;
-  onHistoryChange: (array: any[]) => void;
+  onHistoryChange?: (array: any[]) => void;
   condition?: boolean;
   maintainData?: boolean;
   uniqueData?: boolean;
@@ -39,7 +39,7 @@ export interface CurrentPropsInterface {
   params?: any;
   waitingParams?: any;
   delay?: number;
-  callBack?: (error?: any, data?: any[]) => void;
+  callBack?: (error?: any, data?: any) => void;
   onChange?: (object: object) => void;
   condition?: boolean;
 }
@@ -50,47 +50,52 @@ const useLoadData = ({
   params,
   waitingParams,
   delay,
+
   callBack,
   onChange,
   onHistoryChange,
+
   condition = true,
-  maintainData,
-  uniqueData,
+  maintainData = false,
+
+  uniqueData = true,
   uniqueKey = "id",
 }: useLoadDataProps) => {
-  const [propsHistory, setPropsHistory] = useState<CurrentPropsInterface[]>([]);
-
-  const currentProps: CurrentPropsInterface = {
-    url,
-    params,
-    callBack,
-    onChange,
-    waitingParams,
-    delay,
-    condition,
-  };
-
-  useEffect(() => {
-    if (onHistoryChange) onHistoryChange(propsHistory);
-  }, [JSON.stringify(propsHistory)]);
-
-  useEffect(
-    () => setPropsHistory([...propsHistory, currentProps]),
-    [JSON.stringify(currentProps)]
-  );
-
+  //
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<any[] | any>([]);
-  const [status, setStatus] = useState<string | null>(null);
+
+  // Response Info
+  const [status, setStatus] = useState<number | null>(null);
   const [error, setError] = useState<any>(null);
+
+  // Pagination
   const [pageCount, setPageCount] = useState<number | null>(null);
   const [limit, setLimit] = useState<number | null>(null);
   const [page, setPage] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+
+  // Timing
   const [time, setTime] = useState<number>(0);
   const [requestTime, setRequestTime] = useState<number>(0);
 
-  const resetDefaults = (): void => {
+  // History
+  const [propsHistory, setPropsHistory] = useState<CurrentPropsInterface[]>([]);
+
+  const currentProps: CurrentPropsInterface = useMemo(
+    () => ({
+      url,
+      params,
+      callBack,
+      onChange,
+      waitingParams,
+      delay,
+      condition,
+    }),
+    [url, params, callBack, onChange, waitingParams, delay, condition]
+  );
+
+  const resetDefaults = () => {
     setLoading(true);
     if (!maintainData) {
       setData([]);
@@ -107,72 +112,71 @@ const useLoadData = ({
 
   const updateItemInData = (item: any): void =>
     setData(
-      data?.map((object: any) =>
-        object?.[uniqueKey] === item?.[uniqueKey] ? item : object
+      data?.map((row: any) =>
+        row?.[uniqueKey] === item?.[uniqueKey] ? item : row
       )
     );
 
-  const replaceDataItem = (key: string, value: any, newValue: any) => {
-    if (!data?.length) return;
-
+  const replaceDataItem = (key: string, keyValue: any, newValue: any) =>
     setData((data: any) =>
       data?.map((item: any) =>
         key
-          ? item[key] === value
+          ? item[key] === keyValue
             ? newValue
             : item
-          : item === value
+          : item === keyValue
           ? newValue
           : item
       )
     );
-  };
 
-  const filterNotEmptyParams = (params) => {
-    if (params) {
-      return Object?.fromEntries(
-        Object?.entries(params)?.filter(([key, value]) => {
-          if (value) {
-            return typeof value === "object"
-              ? (value?.length || Object?.keys(value)?.length) && value
-              : "" + value;
-          }
-        })
-      );
-    }
-  };
+  const filterNotEmptyParams = (params: any) =>
+    Object.fromEntries(
+      Object.entries(params).filter(
+        ([, value]) =>
+          typeof value !== "undefined" &&
+          value !== null &&
+          (typeof value === "object"
+            ? ((Array.isArray(value) && value.length) ||
+                Object.keys(value).length) &&
+              value
+            : "" + value)
+      )
+    );
 
-  const getUniqueData = (data) => {
+  const getUniqueData = (rows: any) => {
     if (uniqueData) {
-      if (data && data?.length) {
+      if (rows && rows?.length) {
         if (uniqueKey) {
-          let uniqueArr = [];
-          data.forEach((object, index) => {
-            for (const k in object) {
-              if (Object.hasOwnProperty.call(object, uniqueKey)) {
+          let uniqueRows: any[] = [];
+          rows.forEach((row: any, index: number) => {
+            Object.keys(row).forEach(() => {
+              if (Object.hasOwnProperty.call(row, uniqueKey)) {
                 if (
-                  !uniqueArr.some((x) => x[uniqueKey] === object[uniqueKey])
+                  !uniqueRows.some(
+                    (uniqueRow) => uniqueRow[uniqueKey] === row[uniqueKey]
+                  )
                 ) {
-                  uniqueArr.push(object);
+                  uniqueRows.push(row);
                 }
               } else {
                 console.error(
-                  `The object ${object} at the index ${index} of the data array does not contain the key "${uniqueKey}"`
+                  `The object ${row} at the index ${index} of the data array does not contain the key "${uniqueKey}"`
                 );
-                uniqueArr.push(object);
+                uniqueRows.push(row);
               }
-            }
+            });
           });
 
-          return uniqueArr;
+          return uniqueRows;
         } else {
-          return Array.from(new Set(data));
+          return Array.from(new Set(rows));
         }
       } else {
-        return data;
+        return rows;
       }
     } else {
-      return data;
+      return rows;
     }
   };
 
@@ -200,7 +204,7 @@ const useLoadData = ({
 
         endRequest = new Date();
 
-        setRequestTime((endRequest - startDate) / 1000);
+        setRequestTime((endRequest.getTime() - startDate.getTime()) / 1000);
 
         // Required Section
         if (res?.data) {
@@ -224,7 +228,7 @@ const useLoadData = ({
               callBack(error, dataTarget);
             }
 
-            // Paganation
+            // Pagination
             if (res?.data?.page) {
               setPage(res?.data?.page);
             }
@@ -241,14 +245,17 @@ const useLoadData = ({
               setLimit(res?.data?.limit);
             }
           } else {
-            setData(maintainData ? [...data, ...res?.data] : res?.data);
-            if (callBack) {
-              // Callback Success
-              let _callbackData = maintainData
+            setData((data: any) => {
+              const newData = maintainData
                 ? [...data, ...res?.data]
                 : res?.data;
-              callBack(error, _callbackData);
-            }
+
+              if (callBack) {
+                // Callback Success
+                callBack(error, newData);
+              }
+              return newData;
+            });
           }
         }
 
@@ -256,20 +263,20 @@ const useLoadData = ({
           setStatus(res?.status);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       setError(error?.message);
 
       // set data
       setData(null);
 
       if (callBack) {
-        callBack(error?.message, data);
+        callBack(error?.message, null);
       }
     } finally {
       setLoading(false);
-      let endtDate = new Date();
+      let endDate = new Date();
 
-      setTime((endtDate - startDate) / 1000);
+      setTime((endDate.getTime() - startDate.getTime()) / 1000);
 
       return {
         loading,
@@ -285,11 +292,20 @@ const useLoadData = ({
         filterNotEmptyParams,
         updateItemInData,
         replaceDataItem,
-        time: (endtDate - startDate) / 1000,
+        time: (endDate.getTime() - startDate.getTime()) / 1000,
         requestTime,
       };
     }
   };
+
+  useEffect(() => {
+    if (onHistoryChange) onHistoryChange(propsHistory);
+  }, [JSON.stringify(propsHistory), onHistoryChange]);
+
+  useEffect(
+    () => setPropsHistory([...propsHistory, currentProps]),
+    [JSON.stringify(currentProps)]
+  );
 
   // When props changes
   useEffect(() => {
@@ -374,17 +390,17 @@ useLoadData.defaultProps = {
   params: null,
   waitingParams: null,
   delay: 0,
-  callBack: (err, data) => {
+  callBack: (err: any, data: any) => {
     if (err) {
       console.error(err);
     }
   },
-  onChange: (obj) => {},
-  onHistoryChange: (obj) => {},
+  onChange: (obj: any) => {},
+  onHistoryChange: (obj: any) => {},
   condition: true,
   maintainData: false,
-  uniqueData: false,
-  uniqueKey: "",
+  uniqueData: true,
+  uniqueKey: "id",
 };
 
 // Props types
