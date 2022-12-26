@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import PropTypes from "prop-types";
 
 export interface IUseTimerProps {
   duration: number;
@@ -38,20 +37,17 @@ export const useTimer = ({
   const [paused, setPaused] = useState<boolean>(true);
   const [firstLaunch, setFirstLaunch] = useState<boolean>(false);
 
-  const padLeft = (num: number, digits = 2, str = "0") =>
-    Array(digits - String(Math.trunc(num)).length + 1).join(str) + num || num;
-
   const msToHMS = useCallback(
     (ms: number) => {
-      let seconds: number = ms / delay;
+      const seconds = Math.floor((ms / delay) % 60);
+      const minutes = Math.floor((ms / delay / 60) % 60);
+      const hours = Math.floor((ms / delay / 3600) % 24);
 
-      const hours: number = seconds / 3600;
-      seconds = seconds % 3600;
-
-      const minutes = seconds / 60;
-      seconds = seconds % 60;
-
-      return padLeft(hours) + ":" + padLeft(minutes) + ":" + padLeft(seconds);
+      return [
+        hours.toString().padStart(2, "0"),
+        minutes.toString().padStart(2, "0"),
+        seconds.toString().padStart(2, "0"),
+      ].join(":");
     },
     [delay]
   );
@@ -120,7 +116,11 @@ export const useTimer = ({
 
           // update displayed time
           setDisplayedTime(
-            `${padLeft(hours)}:${padLeft(minutes)}:${padLeft(seconds)}`
+            [
+              hours.toString().padStart(2, "0"),
+              minutes.toString().padStart(2, "0"),
+              seconds.toString().padStart(2, "0"),
+            ].join(":")
           );
         }
       }, delay);
@@ -137,7 +137,7 @@ export const useTimer = ({
   }, [minToHMS, duration, start]);
 
   useEffect(() => {
-    const timeDetails = minToHMS(duration || 0);
+    const timeDetails = minToHMS(duration);
     const [hours, minutes, seconds] = timeDetails.split(":");
 
     setDisplayedTime(timeDetails);
@@ -291,12 +291,4 @@ export const useTimer = ({
     timer,
     timerStatus,
   };
-};
-
-useTimer.propTypes = {
-  duration: PropTypes.number.isRequired,
-  callback: PropTypes.func,
-  onChange: PropTypes.func,
-  delay: PropTypes.number,
-  isMilSeconds: PropTypes.bool,
 };

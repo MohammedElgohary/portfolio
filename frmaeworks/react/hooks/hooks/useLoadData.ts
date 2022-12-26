@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 
@@ -223,17 +223,18 @@ export function useLoadData({
   const getData = async () => {
     let startDate = new Date();
     let endRequest;
-    const historyData: CurrentPropsInterface | undefined | boolean =
-      useHistoryResults &&
-      propsHistory.find(
-        (row) =>
-          row.url === url &&
-          row.delay === delay &&
-          row.condition === condition &&
-          !row.expired &&
-          JSON.stringify(row.params) === JSON.stringify(params) &&
-          JSON.stringify(row.waitingParams) === JSON.stringify(waitingParams)
-      );
+    const historyData: CurrentPropsInterface | undefined =
+      (useHistoryResults &&
+        propsHistory.find(
+          (row: any) =>
+            row.url === url &&
+            row.delay === delay &&
+            row.condition === condition &&
+            !row.expired &&
+            JSON.stringify(row.params) === JSON.stringify(params) &&
+            JSON.stringify(row.waitingParams) === JSON.stringify(waitingParams)
+        )) ||
+      undefined;
 
     try {
       if (condition) {
