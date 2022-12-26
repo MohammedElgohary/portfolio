@@ -1,24 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-
-export interface IUseLoadData {
-  url: string;
-  options?: object;
-  params?: object;
-  waitingParams?: object;
-  delay?: number;
-
-  callBack?: (error?: any, data?: any[]) => void;
-  onChange?: (obj: object) => void;
-  onHistoryChange?: (obj: object) => void;
-
-  condition?: boolean;
-  maintainData?: boolean;
-
-  uniqueData?: boolean;
-  uniqueKey?: string;
-}
 
 /**
  *
@@ -37,99 +19,155 @@ export interface IUseLoadData {
  * @returns
  */
 
-const useLoadData = ({
+// Default props
+const defaultProps = {
+  callBack: (err: any, data: any) => {
+    if (err) {
+      console.error(err);
+    }
+  },
+  condition: true,
+  maintainData: false,
+  uniqueData: true,
+  useHistoryResults: false,
+  uniqueKey: "id",
+  clearHistoryAfter: 5 * 60 * 1000,
+};
+
+export interface useLoadDataProps {
+  url: string;
+  options?: any;
+  params?: any;
+  waitingParams?: any;
+  delay?: number;
+  callBack?: (error?: any, data?: any) => void;
+  onChange?: (object: object) => void;
+  onHistoryChange?: (array: any[]) => void;
+  onClearPropsHistory?: (
+    propsHistory?: CurrentPropsInterface[],
+    setPropsHistory?: React.Dispatch<
+      React.SetStateAction<CurrentPropsInterface[]>
+    >
+  ) => void;
+  condition?: boolean;
+  maintainData?: boolean;
+  uniqueData?: boolean;
+  uniqueKey?: string;
+  useHistoryResults?: boolean;
+  clearHistoryAfter?: number;
+}
+
+export interface CurrentPropsInterface {
+  url: string;
+  params?: any;
+  waitingParams?: any;
+  delay?: number;
+  data?: any;
+  status?: any;
+  error?: any;
+  callBack?: (error?: any, data?: any) => void;
+  onChange?: (object: object) => void;
+  condition?: boolean;
+  expired?: boolean;
+}
+
+export function useLoadData({
   url,
   options,
   params,
   waitingParams,
   delay,
 
-  callBack,
+  callBack = defaultProps.callBack,
   onChange,
   onHistoryChange,
 
-  condition = true,
-  maintainData = false,
+  condition = defaultProps.condition,
+  maintainData = defaultProps.maintainData,
 
-  uniqueData = true,
-  uniqueKey = "id",
-}: IUseLoadData) => {
-  const [propsHistory, setPropsHistory] = useState<any[]>([]);
+  uniqueData = defaultProps.uniqueData,
+  uniqueKey = defaultProps.uniqueKey,
 
-  const currentProps = useMemo(
-    () => ({
-      url,
-      params,
-      callBack,
-      onChange,
-      waitingParams,
-      delay,
-      condition,
-    }),
-    [url, params, callBack, onChange, waitingParams, delay, condition]
-  );
-
-  useEffect(() => {
-    if (onHistoryChange) {
-      onHistoryChange(propsHistory);
-    }
-  }, [onHistoryChange, propsHistory]);
-
-  useEffect(() => {
-    setPropsHistory([...propsHistory, currentProps]);
-  }, [currentProps, propsHistory]);
-
+  useHistoryResults = defaultProps.useHistoryResults,
+  clearHistoryAfter = defaultProps.clearHistoryAfter,
+  onClearPropsHistory,
+}: useLoadDataProps) {
+  //
   const [loading, setLoading] = useState<boolean>(true);
-  const [data, setData] = useState<any[]>([]);
-  const [status, setStatus] = useState<any>(null);
+  const [data, setData] = useState<any[] | any>([]);
+
+  // Response Info
+  const [status, setStatus] = useState<number | null>(null);
   const [error, setError] = useState<any>(null);
+
+  // Timing
   const [time, setTime] = useState<number>(0);
   const [requestTime, setRequestTime] = useState<number>(0);
 
-  const resetDefaults = useCallback(() => {
-    return () => {
-      setLoading(true);
-      if (!maintainData) {
-        setData([]);
-      }
-      setStatus(null);
-      setError(null);
-      setTime(0);
-      setRequestTime(0);
-    };
-  }, [maintainData]);
+  // History
+  const [propsHistory, setPropsHistory] = useState<CurrentPropsInterface[]>([]);
 
-  const findItemAndUpdate = useCallback(
-    (item: any) => {
-      console.log("Initializing findItemAndUpdate");
-
-      return setData((data: any[]) =>
-        data?.map((row) =>
-          row?.[uniqueKey] === item?.[uniqueKey] ? item : row
-        )
-      );
-    },
-    [uniqueKey]
+  const currentProps: CurrentPropsInterface = useMemo(
+    () => ({
+      url,
+      params,
+      waitingParams,
+      delay,
+      condition,
+      callBack,
+      onChange,
+      data,
+      status,
+      error,
+      expired: false,
+    }),
+    [
+      callBack,
+      condition,
+      data,
+      delay,
+      error,
+      onChange,
+      params,
+      status,
+      url,
+      waitingParams,
+    ]
   );
 
-  const replaceDataItem = useCallback(
-    (key: string, value: any, newValue: any) => {
-      console.log("Initializing replaceDataItem");
+  const resetDefaults = () => {
+    setLoading(true);
+    if (!maintainData) {
+      setData([]);
+    }
+    setStatus(null);
+    setError(null);
+    setTime(0);
+    setRequestTime(0);
+  };
 
-      setData((data: any[]) => {
-        if (key)
-          return data?.map((row) => (row[key] === value ? newValue : row));
+  const updateItemInData = (item: any): void =>
+    setData(
+      data?.map((row: any) =>
+        row?.[uniqueKey] === item?.[uniqueKey] ? item : row
+      )
+    );
 
-        return data?.map((row) => (row === value ? newValue : row));
-      });
-    },
-    []
-  );
+  const replaceDataItem = (key: string, keyValue: any, newValue: any) =>
+    setData((data: any) =>
+      data?.map((item: any) =>
+        key
+          ? item[key] === keyValue
+            ? newValue
+            : item
+          : item === keyValue
+          ? newValue
+          : item
+      )
+    );
 
-  const filterNotEmptyParams = useCallback((params: any) => {
-    console.log("Initializing filterNotEmptyParams");
-
-    return Object.fromEntries(
+  const filterNotEmptyParams = (params: any) =>
+    Object.fromEntries(
       Object.entries(params).filter(
         ([, value]) =>
           typeof value !== "undefined" &&
@@ -141,144 +179,156 @@ const useLoadData = ({
             : "" + value)
       )
     );
-  }, []);
 
-  const getUniqueData = useCallback(
-    (data: any[]) => {
-      console.log("Initializing getUniqueData");
-      if (uniqueData) {
-        if (data && data?.length) {
-          if (uniqueKey) {
-            let uniqueRows: any[] = [];
+  const getUniqueData = (rows: any) => {
+    if (uniqueData) {
+      if (rows && rows?.length) {
+        if (uniqueKey) {
+          let uniqueRows: any[] = [];
 
-            data.forEach((object, index) => {
-              Object.keys(object).forEach(() => {
-                if (Object.hasOwnProperty.call(object, uniqueKey)) {
-                  if (
-                    !uniqueRows.some(
-                      (row) => row[uniqueKey] === object[uniqueKey]
-                    )
-                  ) {
-                    uniqueRows.push(object);
-                  }
+          rows.forEach((row: any, index: number) => {
+            Object.keys(row).forEach(() => {
+              if (Object.hasOwnProperty.call(row, uniqueKey)) {
+                if (
+                  !uniqueRows.some(
+                    (uniqueRow) =>
+                      JSON.stringify(uniqueRow[uniqueKey]) ===
+                      JSON.stringify(row[uniqueKey])
+                  )
+                ) {
+                  uniqueRows.push(row);
                 }
-
+              } else {
                 console.error(
-                  `The object ${object} at the index ${index} of the data array does not contain the key "${uniqueKey}"`
+                  `The object ${row} at the index ${index} of the data array does not contain the key "${uniqueKey}"`
                 );
-
-                uniqueRows.push(object);
-              });
+                uniqueRows.push(row);
+              }
             });
-            return uniqueRows;
-          }
-          return Array.from(new Set(data));
-        }
-        return data;
-      }
-      return data;
-    },
-    [uniqueData, uniqueKey]
-  );
-
-  // Fetch Data
-  const getData = useCallback(() => {
-    console.log("Initializing getData");
-
-    return async () => {
-      let startDate: Date = new Date();
-      let endRequest: Date;
-      try {
-        if (condition) {
-          let filteredParams = {};
-
-          if (params || waitingParams) {
-            filteredParams = filterNotEmptyParams({
-              ...params,
-              ...waitingParams,
-            });
-          }
-
-          resetDefaults();
-
-          let res = await axios?.get(url, {
-            params: filteredParams,
-            ...options,
           });
 
-          endRequest = new Date();
-
-          setRequestTime((endRequest.getTime() - startDate.getTime()) / 1000);
-
-          let responseData = maintainData
-            ? getUniqueData([...data, ...res?.data])
-            : res?.data;
-
-          setData(responseData);
-          // Callback Success
-          if (callBack) {
-            callBack(error, responseData);
-          }
-
-          if (res?.status) {
-            setStatus(res.status);
-          }
+          return uniqueRows;
+        } else {
+          return Array.from(new Set(rows));
         }
-      } catch (error: any) {
-        setError(error?.message);
-
-        // set data
-        setData([]);
-
-        if (callBack) {
-          callBack(error?.message, data);
-        }
-      } finally {
-        setLoading(false);
-        let endDate = new Date();
-
-        setTime((endDate.getTime() - startDate.getTime()) / 1000);
-
-        return {
-          loading,
-          propsHistory,
-          data,
-          status,
-          error,
-          getData,
-          filterNotEmptyParams,
-          findItemAndUpdate,
-          replaceDataItem,
-          time: (endDate.getTime() - startDate.getTime()) / 1000,
-          requestTime,
-        };
+      } else {
+        return rows;
       }
-    };
-  }, [
-    callBack,
-    condition,
-    data,
-    error,
-    filterNotEmptyParams,
-    findItemAndUpdate,
-    getUniqueData,
-    loading,
-    maintainData,
-    options,
-    params,
-    propsHistory,
-    replaceDataItem,
-    requestTime,
-    resetDefaults,
-    status,
-    url,
-    waitingParams,
-  ]);
+    } else {
+      return rows;
+    }
+  };
+
+  // Fetch Data
+  const getData = async () => {
+    let startDate = new Date();
+    let endRequest;
+    const historyData: CurrentPropsInterface | undefined | boolean =
+      useHistoryResults &&
+      propsHistory.find(
+        (row) =>
+          row.url === url &&
+          row.delay === delay &&
+          row.condition === condition &&
+          !row.expired &&
+          JSON.stringify(row.params) === JSON.stringify(params) &&
+          JSON.stringify(row.waitingParams) === JSON.stringify(waitingParams)
+      );
+
+    try {
+      if (condition) {
+        let filteredParams = {};
+
+        if (params || waitingParams) {
+          filteredParams = filterNotEmptyParams({
+            ...params,
+            ...waitingParams,
+          });
+        }
+
+        resetDefaults();
+
+        let res = historyData
+          ? {
+              data: historyData.data,
+              status: historyData.status,
+              error: historyData.error,
+            }
+          : await axios.get(url, {
+              params: filteredParams,
+              ...options,
+            });
+
+        endRequest = new Date();
+
+        setRequestTime((endRequest.getTime() - startDate.getTime()) / 1000);
+
+        setData((data: any) => {
+          let newData = maintainData
+            ? Array.isArray(data) && Array.isArray(res.data) && res.data
+              ? [...data, ...res.data]
+              : res.data
+            : res.data;
+
+          // Make Date unique
+          newData = uniqueData ? getUniqueData(newData) : newData;
+
+          if (callBack) {
+            // Callback Success
+            callBack(error, newData);
+          }
+          return newData;
+        });
+
+        if (res?.status) {
+          setStatus(res?.status);
+        }
+      }
+    } catch (error: any) {
+      setError(error?.message);
+
+      // set data
+      setData(null);
+
+      if (callBack) {
+        callBack(error?.message, null);
+      }
+    } finally {
+      setLoading(false);
+      let endDate = new Date();
+
+      setTime((endDate.getTime() - startDate.getTime()) / 1000);
+
+      return {
+        loading,
+        propsHistory,
+        data,
+        status,
+        error,
+        getData,
+        filterNotEmptyParams,
+        updateItemInData,
+        replaceDataItem,
+        time: (endDate.getTime() - startDate.getTime()) / 1000,
+        requestTime,
+        requestsCount: propsHistory.length,
+      };
+    }
+  };
+
+  useEffect(() => {
+    if (onHistoryChange) onHistoryChange(propsHistory);
+  }, [JSON.stringify(propsHistory), onHistoryChange]);
+
+  useEffect(
+    () => setPropsHistory([...propsHistory, currentProps]),
+    [JSON.stringify(currentProps)]
+  );
 
   // When props changes
   useEffect(() => {
     getData();
-  }, [getData, url]);
+  }, [url, JSON.stringify(params)]);
 
   // When waiting changes
   useEffect(() => {
@@ -289,7 +339,7 @@ const useLoadData = ({
     }, delay || 1000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [delay, getData, propsHistory?.length]);
+  }, [JSON.stringify(waitingParams)]);
 
   // When change
   useEffect(() => {
@@ -303,10 +353,11 @@ const useLoadData = ({
         error,
         getData,
         replaceDataItem,
-        findItemAndUpdate,
+        updateItemInData,
         filterNotEmptyParams,
         time,
         requestTime,
+        requestsCount: propsHistory.length,
       });
     }
   }, [
@@ -318,12 +369,28 @@ const useLoadData = ({
     error,
     getData,
     replaceDataItem,
-    findItemAndUpdate,
+    updateItemInData,
     filterNotEmptyParams,
     time,
     requestTime,
-    onChange,
   ]);
+
+  useEffect(() => {
+    if (!clearHistoryAfter) return;
+
+    const timeout: NodeJS.Timer = setTimeout(() => {
+      setPropsHistory((propsHistory: CurrentPropsInterface[]) => [
+        ...propsHistory.map((row) => ({ ...row, expired: true })),
+      ]);
+
+      if (onClearPropsHistory)
+        onClearPropsHistory(propsHistory, setPropsHistory);
+    }, clearHistoryAfter);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [clearHistoryAfter, onClearPropsHistory]);
 
   return {
     loading,
@@ -333,32 +400,14 @@ const useLoadData = ({
     error,
     getData,
     replaceDataItem,
-    findItemAndUpdate,
+    updateItemInData,
     filterNotEmptyParams,
     time,
     requestTime,
     propsHistory,
+    requestsCount: propsHistory.length,
   };
-};
-
-// Default props
-useLoadData.defaultProps = {
-  options: null,
-  params: null,
-  waitingParams: null,
-  delay: 0,
-  callBack: (err: any, data: any[]) => {
-    if (err) {
-      console.error(err);
-    }
-  },
-  onChange: (obj: any) => {},
-  onHistoryChange: (obj: any) => {},
-  condition: true,
-  maintainData: false,
-  uniqueData: false,
-  uniqueKey: "",
-};
+}
 
 // Props types
 useLoadData.propTypes = {
@@ -374,6 +423,6 @@ useLoadData.propTypes = {
   maintainData: PropTypes.bool,
   uniqueData: PropTypes.bool,
   uniqueKey: PropTypes.string,
+  useHistoryResults: PropTypes.bool,
+  clearHistoryAfter: PropTypes.number,
 };
-
-export { useLoadData };
