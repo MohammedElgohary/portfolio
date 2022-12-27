@@ -104,6 +104,7 @@ function useLoadData(_a) {
     var _p = (0, react_1.useState)(0), requestTime = _p[0], setRequestTime = _p[1];
     // History
     var _q = (0, react_1.useState)([]), propsHistory = _q[0], setPropsHistory = _q[1];
+    var controller = new AbortController();
     var currentProps = (0, react_1.useMemo)(function () { return ({
         url: url,
         params: params,
@@ -236,7 +237,7 @@ function useLoadData(_a) {
                         error: historyData.error
                     };
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, axios_1["default"].get(url, __assign({ params: filteredParams }, options))];
+                case 2: return [4 /*yield*/, axios_1["default"].get(url, __assign(__assign({ params: filteredParams }, options), { signal: controller.signal }))];
                 case 3:
                     _a = _b.sent();
                     _b.label = 4;
@@ -301,6 +302,9 @@ function useLoadData(_a) {
     // When props changes
     (0, react_1.useEffect)(function () {
         getData();
+        return function () {
+            controller.abort();
+        };
     }, [url, JSON.stringify(params)]);
     // When waiting changes
     (0, react_1.useEffect)(function () {
@@ -309,7 +313,10 @@ function useLoadData(_a) {
                 getData();
             }
         }, delay || 1000);
-        return function () { return clearTimeout(delayDebounceFn); };
+        return function () {
+            clearTimeout(delayDebounceFn);
+            controller.abort();
+        };
     }, [JSON.stringify(waitingParams)]);
     // When change
     (0, react_1.useEffect)(function () {

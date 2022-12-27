@@ -107,6 +107,8 @@ export function useLoadData({
   // History
   const [propsHistory, setPropsHistory] = useState<CurrentPropsInterface[]>([]);
 
+  const controller = new AbortController();
+
   const currentProps: CurrentPropsInterface = useMemo(
     () => ({
       url,
@@ -258,6 +260,7 @@ export function useLoadData({
           : await axios.get(url, {
               params: filteredParams,
               ...options,
+              signal: controller.signal,
             });
 
         endRequest = new Date();
@@ -329,6 +332,10 @@ export function useLoadData({
   // When props changes
   useEffect(() => {
     getData();
+
+    return () => {
+      controller.abort();
+    };
   }, [url, JSON.stringify(params)]);
 
   // When waiting changes
@@ -339,7 +346,10 @@ export function useLoadData({
       }
     }, delay || 1000);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
   }, [JSON.stringify(waitingParams)]);
 
   // When change
