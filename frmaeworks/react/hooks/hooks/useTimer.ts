@@ -36,6 +36,7 @@ export const useTimer = ({
 
   const [paused, setPaused] = useState<boolean>(true);
   const [firstLaunch, setFirstLaunch] = useState<boolean>(false);
+  const [started, setStarted] = useState<boolean>(false);
 
   const msToHMS = useCallback(
     (ms: number) => {
@@ -49,26 +50,27 @@ export const useTimer = ({
         seconds.toString().padStart(2, "0"),
       ].join(":");
     },
-    [delay]
+    [delay],
   );
 
   const minToHMS = useCallback(
     (time: number) => msToHMS(time * 60 * delay),
-    [delay, msToHMS]
+    [delay, msToHMS],
   );
 
   const stop = useCallback(() => {
     timerStatus.current = false;
     setPaused(true);
     clearInterval(timer.current);
+    setStarted(false);
   }, []);
 
-  const pause = useCallback(() => {
+  const pause = () => {
     if (firstLaunch) {
-      setPaused(!timerStatus.current);
       timerStatus.current = !timerStatus.current;
+      setPaused((paused: boolean) => !paused);
     }
-  }, [firstLaunch]);
+  };
 
   const start = useCallback(
     function start() {
@@ -76,13 +78,14 @@ export const useTimer = ({
         stop();
       }
 
+      setStarted(true);
       setFirstLaunch(true);
       timerStatus.current = true;
       setPaused(false);
 
       let [hours, minutes, seconds] = minToHMS(duration || 0)
         ?.split(":")
-        ?.map((e) => parseInt(e));
+        ?.map(e => parseInt(e));
 
       timer.current = setInterval(() => {
         if (timerStatus.current) {
@@ -120,17 +123,17 @@ export const useTimer = ({
               hours.toString().padStart(2, "0"),
               minutes.toString().padStart(2, "0"),
               seconds.toString().padStart(2, "0"),
-            ].join(":")
+            ].join(":"),
           );
         }
       }, delay);
     },
-    [minToHMS, duration, delay, stop, callback]
+    [minToHMS, duration, delay, stop, callback],
   );
 
   const reset = useCallback(() => {
     clearInterval(timer.current);
-    setDisplayedTime(minToHMS(duration || 0));
+    setDisplayedTime(minToHMS(duration));
     setPassedTimeDisplay("00:00:00");
     setPassedTime(0);
     start();
@@ -145,7 +148,7 @@ export const useTimer = ({
     setMinutes(+minutes);
     setSeconds(+seconds);
     setRestTime(
-      +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60
+      +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60,
     );
 
     setPassedTime(0);
@@ -155,12 +158,12 @@ export const useTimer = ({
       //   timer.current = null;
       start();
     }
-  }, [minToHMS, delay, duration, firstLaunch, paused, start]);
+  }, [minToHMS, delay, duration, start]);
 
   useEffect(() => {
     const [hours, minutes, seconds] = displayedTime
       .split(":")
-      .map((e) => parseInt(e));
+      .map(e => parseInt(e));
 
     let newRestTime =
       +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60;
@@ -174,7 +177,7 @@ export const useTimer = ({
     const passedTimeDisplay = msToHMS(passedTime);
     const [hours, minutes, seconds] = passedTimeDisplay
       .split(":")
-      .map((e) => parseInt(e));
+      .map(e => parseInt(e));
 
     setPassedTimeDisplay(passedTimeDisplay);
 
@@ -196,6 +199,7 @@ export const useTimer = ({
         // Playing
         paused,
         firstLaunch,
+        started,
 
         // Timing
         passedTime,
@@ -229,6 +233,7 @@ export const useTimer = ({
       // Playing
       paused,
       firstLaunch,
+      started,
 
       // Timing
       passedTime,
@@ -253,7 +258,7 @@ export const useTimer = ({
       timerStatus,
 
       onChange,
-    ]
+    ],
   );
 
   return {
@@ -266,6 +271,7 @@ export const useTimer = ({
     // Playing
     paused,
     firstLaunch,
+    started,
 
     // Timing
     passedTime,

@@ -19,6 +19,7 @@ var useTimer = function (_a) {
     var _o = (0, react_1.useState)(0), passedHours = _o[0], setPassedHours = _o[1];
     var _p = (0, react_1.useState)(true), paused = _p[0], setPaused = _p[1];
     var _q = (0, react_1.useState)(false), firstLaunch = _q[0], setFirstLaunch = _q[1];
+    var _r = (0, react_1.useState)(false), started = _r[0], setStarted = _r[1];
     var msToHMS = (0, react_1.useCallback)(function (ms) {
         var seconds = Math.floor((ms / delay) % 60);
         var minutes = Math.floor((ms / delay / 60) % 60);
@@ -34,18 +35,20 @@ var useTimer = function (_a) {
         timerStatus.current = false;
         setPaused(true);
         clearInterval(timer.current);
+        setStarted(false);
     }, []);
-    var pause = (0, react_1.useCallback)(function () {
+    var pause = function () {
         if (firstLaunch) {
-            setPaused(!timerStatus.current);
             timerStatus.current = !timerStatus.current;
+            setPaused(function (paused) { return !paused; });
         }
-    }, [firstLaunch]);
+    };
     var start = (0, react_1.useCallback)(function start() {
         var _a, _b;
         if (timer.current) {
             stop();
         }
+        setStarted(true);
         setFirstLaunch(true);
         timerStatus.current = true;
         setPaused(false);
@@ -86,7 +89,7 @@ var useTimer = function (_a) {
     }, [minToHMS, duration, delay, stop, callback]);
     var reset = (0, react_1.useCallback)(function () {
         clearInterval(timer.current);
-        setDisplayedTime(minToHMS(duration || 0));
+        setDisplayedTime(minToHMS(duration));
         setPassedTimeDisplay("00:00:00");
         setPassedTime(0);
         start();
@@ -105,7 +108,7 @@ var useTimer = function (_a) {
             //   timer.current = null;
             start();
         }
-    }, [minToHMS, delay, duration, firstLaunch, paused, start]);
+    }, [minToHMS, delay, duration, start]);
     (0, react_1.useEffect)(function () {
         var _a = displayedTime
             .split(":")
@@ -135,6 +138,7 @@ var useTimer = function (_a) {
             // Playing
             paused: paused,
             firstLaunch: firstLaunch,
+            started: started,
             // Timing
             passedTime: passedTime,
             restTime: restTime,
@@ -162,6 +166,7 @@ var useTimer = function (_a) {
         // Playing
         paused,
         firstLaunch,
+        started,
         // Timing
         passedTime,
         restTime,
@@ -190,6 +195,7 @@ var useTimer = function (_a) {
         // Playing
         paused: paused,
         firstLaunch: firstLaunch,
+        started: started,
         // Timing
         passedTime: passedTime,
         restTime: restTime,
