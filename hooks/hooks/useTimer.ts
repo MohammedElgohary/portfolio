@@ -9,14 +9,14 @@ export interface IUseTimerProps {
   onReset?: () => void;
 }
 
-export const useTimer = ({
+export function useTimer({
   callback,
   delay = 1000,
   isMilSeconds = false,
   duration,
   onChange,
   onReset,
-}: IUseTimerProps) => {
+}: IUseTimerProps) {
   duration = isMilSeconds ? duration / delay : duration;
 
   const timer = useRef<NodeJS.Timer>();
@@ -300,4 +300,4 @@ export const useTimer = ({
     timer,
     timerStatus,
   };
-};
+}

@@ -2,7 +2,7 @@
 exports.__esModule = true;
 exports.useOnline = void 0;
 var react_1 = require("react");
-var useOnline = function () {
+function useOnline() {
     var _a = (0, react_1.useState)(window.navigator.onLine), isOnline = _a[0], setIsOnline = _a[1];
     (0, react_1.useEffect)(function () {
         window.addEventListener("offline", function () {
@@ -21,5 +21,5 @@ var useOnline = function () {
         };
     });
     return isOnline;
-};
+}
 exports.useOnline = useOnline;

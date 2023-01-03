@@ -6,12 +6,12 @@ export interface IUseOnEnterSection {
   onShown?: (element: Element) => void;
   onHidden?: (element: Element) => void;
 }
-export const useOnEnterSection = ({
+export function useOnEnterSection({
   selectors,
   delay = 0,
   onShown,
   onHidden,
-}: IUseOnEnterSection) => {
+}: IUseOnEnterSection) {
   useEffect(() => {
     let observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -27,4 +27,4 @@ export const useOnEnterSection = ({
 
     elements.forEach((element) => observer.observe(element));
   }, [selectors, onShown, onHidden]);
-};
+}

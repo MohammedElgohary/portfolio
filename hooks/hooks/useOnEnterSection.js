@@ -2,7 +2,7 @@
 exports.__esModule = true;
 exports.useOnEnterSection = void 0;
 var react_1 = require("react");
-var useOnEnterSection = function (_a) {
+function useOnEnterSection(_a) {
     var selectors = _a.selectors, _b = _a.delay, delay = _b === void 0 ? 0 : _b, onShown = _a.onShown, onHidden = _a.onHidden;
     (0, react_1.useEffect)(function () {
         var observer = new IntersectionObserver(function (entries) {
@@ -18,5 +18,5 @@ var useOnEnterSection = function (_a) {
         var elements = document.querySelectorAll(selectors);
         elements.forEach(function (element) { return observer.observe(element); });
     }, [selectors, onShown, onHidden]);
-};
+}
 exports.useOnEnterSection = useOnEnterSection;
