@@ -6,6 +6,7 @@ export interface IUseTimerProps {
   delay?: number;
   isMilSeconds?: boolean;
   onChange?: (obj: any) => void;
+  onReset?: () => void;
 }
 
 export const useTimer = ({
@@ -14,6 +15,7 @@ export const useTimer = ({
   isMilSeconds = false,
   duration,
   onChange,
+  onReset,
 }: IUseTimerProps) => {
   duration = isMilSeconds ? duration / delay : duration;
 
@@ -50,12 +52,12 @@ export const useTimer = ({
         seconds.toString().padStart(2, "0"),
       ].join(":");
     },
-    [delay],
+    [delay]
   );
 
   const minToHMS = useCallback(
     (time: number) => msToHMS(time * 60 * delay),
-    [delay, msToHMS],
+    [delay, msToHMS]
   );
 
   const stop = useCallback(() => {
@@ -78,6 +80,7 @@ export const useTimer = ({
         stop();
       }
 
+      onReset?.();
       setStarted(true);
       setFirstLaunch(true);
       timerStatus.current = true;
@@ -85,7 +88,7 @@ export const useTimer = ({
 
       let [hours, minutes, seconds] = minToHMS(duration || 0)
         ?.split(":")
-        ?.map(e => parseInt(e));
+        ?.map((e) => parseInt(e));
 
       timer.current = setInterval(() => {
         if (timerStatus.current) {
@@ -123,12 +126,12 @@ export const useTimer = ({
               hours.toString().padStart(2, "0"),
               minutes.toString().padStart(2, "0"),
               seconds.toString().padStart(2, "0"),
-            ].join(":"),
+            ].join(":")
           );
         }
       }, delay);
     },
-    [minToHMS, duration, delay, stop, callback],
+    [minToHMS, duration, delay, stop, callback]
   );
 
   const reset = useCallback(() => {
@@ -148,7 +151,7 @@ export const useTimer = ({
     setMinutes(+minutes);
     setSeconds(+seconds);
     setRestTime(
-      +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60,
+      +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60
     );
 
     setPassedTime(0);
@@ -163,7 +166,7 @@ export const useTimer = ({
   useEffect(() => {
     const [hours, minutes, seconds] = displayedTime
       .split(":")
-      .map(e => parseInt(e));
+      .map((e) => parseInt(e));
 
     let newRestTime =
       +seconds * delay + +minutes * delay * 60 + +hours * delay * 60 * 60;
@@ -177,7 +180,7 @@ export const useTimer = ({
     const passedTimeDisplay = msToHMS(passedTime);
     const [hours, minutes, seconds] = passedTimeDisplay
       .split(":")
-      .map(e => parseInt(e));
+      .map((e) => parseInt(e));
 
     setPassedTimeDisplay(passedTimeDisplay);
 
@@ -258,7 +261,7 @@ export const useTimer = ({
       timerStatus,
 
       onChange,
-    ],
+    ]
   );
 
   return {

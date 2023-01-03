@@ -3,7 +3,7 @@ exports.__esModule = true;
 exports.useTimer = void 0;
 var react_1 = require("react");
 var useTimer = function (_a) {
-    var callback = _a.callback, _b = _a.delay, delay = _b === void 0 ? 1000 : _b, _c = _a.isMilSeconds, isMilSeconds = _c === void 0 ? false : _c, duration = _a.duration, onChange = _a.onChange;
+    var callback = _a.callback, _b = _a.delay, delay = _b === void 0 ? 1000 : _b, _c = _a.isMilSeconds, isMilSeconds = _c === void 0 ? false : _c, duration = _a.duration, onChange = _a.onChange, onReset = _a.onReset;
     duration = isMilSeconds ? duration / delay : duration;
     var timer = (0, react_1.useRef)();
     var timerStatus = (0, react_1.useRef)(false);
@@ -48,6 +48,7 @@ var useTimer = function (_a) {
         if (timer.current) {
             stop();
         }
+        onReset === null || onReset === void 0 ? void 0 : onReset();
         setStarted(true);
         setFirstLaunch(true);
         timerStatus.current = true;
