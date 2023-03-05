@@ -22,3 +22,4 @@ __exportStar(require("./useOnline"), exports);
 __exportStar(require("./usePrevious"), exports);
 __exportStar(require("./useRandom"), exports);
 __exportStar(require("./useTimer"), exports);
+__exportStar(require("./useWaitingState"), exports);
